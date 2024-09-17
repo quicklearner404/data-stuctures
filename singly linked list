@@ -1,0 +1,367 @@
+//easy to use and understand linked list class using c++
+#include<iostream>
+using namespace std;
+class node
+{
+public:
+	int data;
+	node* next;
+
+	node()
+	{
+		data = 0;
+		next = NULL;
+	}
+	node(int value)
+	{
+		data = value;
+		next = NULL;
+	}
+};
+class linkedlist
+{
+	node* head;
+	node* tail;
+public:
+	linkedlist()
+	{
+		head = NULL;
+		tail = NULL;
+	}
+
+	void insertathead(int data)//insert a new element at the head position
+	{
+		node* temp = new node(data);
+		if (head == NULL)
+		{
+			head = temp;
+			
+		}
+		
+		else
+		{
+			temp->next = head;
+			head = temp;
+		}
+	
+	}
+	void insertattail(int data)//insert a new element at the tail position
+	{
+		node* new_node = new node(data);
+
+		
+		if (head == nullptr) {
+			return ;
+		}
+
+		node* last = head;
+
+		while (last->next != nullptr) {
+			last = last->next;
+		}
+
+		last->next = new_node;
+
+		return;
+		
+	}
+	void printforward()
+	{
+		if (head == NULL)
+		{
+			cout << "the linked list is empty!";
+			return;
+		}
+		node* current=head;
+		while (current != NULL)
+		{
+			cout << current->data << "->";
+			current = current->next;
+		}
+		cout << endl;
+	}
+	void deletefromhead()
+	{
+		node* temp = head;
+		head = head->next;
+		temp->next = NULL;
+		delete[]temp;
+	}
+
+	//get size
+	int size()
+	{
+		node* current = head;
+		int len = 0;
+		while (current != NULL)
+		{
+			current = current->next;
+			len++;
+
+		}
+		return len;
+	}
+
+	//get a certain element
+	int getelement(int n,int len)
+	{
+		int iterate = 0;
+		node* current = head;
+		while (current != NULL)
+		{
+			if (iterate == n)
+			{
+				return current->data;
+			}
+			iterate++;
+			current = current->next;
+		}
+	}
+
+	//get mid element
+	int getmiddle()
+	{
+		int len = size();
+		int midlen = size();
+		if (midlen % 2 != 0)
+		{
+			midlen=(midlen / 2);
+
+		}
+		else
+		{
+			midlen = midlen / 2;
+		}
+		int element = getelement(midlen, len);
+		return element;
+	}
+
+	//delete from tail
+	void deletefromtail() {
+		if (head == nullptr) {
+			return ;
+		}
+
+		if (head->next == nullptr) {
+			delete head;
+			return ;
+		}
+
+		node* temp = head;
+		while (temp->next->next != nullptr) {
+			temp = temp->next;
+		}
+
+		delete (temp->next);
+
+		temp->next = nullptr;
+
+		return ; 
+	}
+
+
+	//bool is list empty
+	bool isEmpty()
+	{
+		if (head == NULL || tail == NULL)
+			return 1;
+		else
+		{
+			return 0;
+		}
+	}
+
+	//min element
+	int getmin()
+	{
+		node* current = head;
+		int min = head->data;
+		while (current->next!=NULL)
+		{
+			current = current->next;
+			if (current->data < min)
+			{
+				min = current->data;
+			}
+		}
+		return min;
+	}
+
+	//max element
+	int getmax()
+	{
+		node* current = head;
+		int max = head->data;
+		while (current->next != NULL)
+		{
+			current = current->next;
+			if (current->data > max)
+			{
+				max = current->data;
+			}
+		}
+		return max;
+	}
+
+	//find average of the elements
+	int getavg()
+	{
+		node* current = head;
+		int sum = current->data;
+		while (current->next != NULL)
+		{
+			current = current->next;
+			sum = sum + current->data;
+		}
+		int len = size();
+		return sum/len;
+	}
+
+	//insert before index
+	void insertbefore(int val, int key)
+	{
+		node* newNode = new node(val);
+
+		if (key == 1) {
+			newNode->next = head;
+			head = newNode;
+			return;
+		}
+
+		node* current = head;
+		
+		for (int i = 1; i < key - 1 && current != nullptr;
+			++i) {
+			current = current->next;
+		}
+
+		if (current == nullptr) {
+			cout << "Position is out of bounds." << endl;
+			delete newNode;
+		
+			return;
+		}
+
+		newNode->next = current->next;
+		current->next = newNode;
+		return;
+	}
+
+	//insert after index
+	void insertafter(int val, int key)
+	{
+		node* curr = head;
+
+		for (int i = 1; i < key  && curr != nullptr;
+			++i) {
+			curr = curr->next;
+		}
+		if (curr == nullptr)
+			return ;
+
+		node* newNode = new node(val);
+		newNode->next = curr->next;
+		curr->next = newNode;
+		return ;
+	}
+
+	//bonus question
+	bool Swap(int leftIndex, int rightIndex) {
+		if (head == nullptr || leftIndex == rightIndex) { 
+			return false;
+		}
+		int size = this->size(); 
+		if (leftIndex < 0 || rightIndex < 0 || leftIndex >= size || rightIndex >= size) {
+			return false; 
+		}
+		node* prevLeft = nullptr, * prevRight = nullptr, * leftNode = head, * rightNode = head;
+
+		for (int i = 0; i < leftIndex; ++i) {
+			prevLeft = leftNode;
+			leftNode = leftNode->next;
+		}
+
+		for (int i = 0; i < rightIndex; ++i) {
+			prevRight = rightNode;
+			rightNode = rightNode->next;
+		}
+
+		if (leftNode == nullptr || rightNode == nullptr) {
+			return false;
+		}
+		if (prevLeft != nullptr) {
+			prevLeft->next = rightNode;
+		}
+		else {  
+			head = rightNode;
+		}
+
+		if (prevRight != nullptr) {
+			prevRight->next = leftNode;
+		}
+		else {  
+			head = leftNode;
+		}
+
+		node* temp = leftNode->next;
+		leftNode->next = rightNode->next;
+		rightNode->next = temp;
+
+		if (leftNode->next == nullptr) {
+			tail = leftNode;
+		}
+		if (rightNode->next == nullptr) {
+			tail = rightNode;
+		}
+
+		return true;
+	}
+	//destructor
+	~linkedlist() {
+		node* current = head;
+		while (current != nullptr) {
+			node* nextNode = current->next; 
+			delete current; 
+			current = nextNode; 
+		}
+		head = nullptr;
+		tail = nullptr;
+	}
+
+};
+int main()
+{
+	linkedlist l1;
+	l1.insertathead(25);
+	l1.insertathead(35);
+	l1.insertathead(45);
+	l1.insertathead(55);
+	l1.insertathead(65);
+	l1.insertattail(45);
+	
+	
+	l1.printforward();
+	int len = l1.size();
+	cout <<"the size is: "<< len<<endl;
+	int midlen = l1.getmiddle();
+	cout << "the middle element is: " << midlen<<endl;
+	int min = l1.getmin();
+	cout << "the minimum value is: " << min << endl;
+	int max = l1.getmax();
+	cout << "the maximum value is: " << max << endl;
+	int avg = l1.getavg();
+	cout << "the avg value is: " << avg << endl;
+	l1.insertbefore(15, 2);
+	l1.insertafter(88, 5);
+	l1.deletefromtail();
+	l1.deletefromhead();
+	l1.printforward();
+	if (l1.Swap(1, 4)) {
+		cout << "Swap successful." << endl;
+	}
+	else {
+		cout << "Swap failed." << endl;
+	}
+
+	l1.printforward();
+}
