@@ -1,0 +1,74 @@
+#include <iostream>
+using namespace std;
+
+template <typename T>
+void selectionSort(T* arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min]) {
+                min = j;
+            }
+        }
+        T temp = arr[min];
+        arr[min] = arr[i];
+        arr[i] = temp;
+    }
+}
+
+template <typename T>
+void binarysearch(T* arr, int n, T key) {
+    int left = 0;
+    int right = n - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == key) {
+            
+            cout << "The searched element is Present at index " << mid << "." << endl;
+            return;
+        }
+        else if (arr[mid] < key) {
+            left = mid + 1;
+        }
+        else {
+            right = mid - 1;
+        }
+    }
+
+        cout << "The searched element is Not Present." << endl;
+    
+}
+
+int main() {
+    int n;
+
+    cout << "Enter the size of the array that u want: ";
+    cin >> n;
+
+    int* arr = new int[n];
+    cout << "Enter the elements of the array: ";
+    for (int i = 0; i < n; i++) {
+        cin >> arr[i];
+    }
+
+    selectionSort<int>(arr, n);
+
+    cout << "Sorted Array: ";
+    for (int i = 0; i < n; i++) {
+        cout << arr[i];
+         cout << " ";
+    }
+    cout << endl;
+
+    int key;
+
+    cout << "Search an Element: ";
+    cin >> key;
+
+    binarysearch<int>(arr, n, key);
+
+    delete[] arr;
+
+    return 0;
+}
