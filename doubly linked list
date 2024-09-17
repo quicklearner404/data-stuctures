@@ -1,0 +1,320 @@
+//easy to use doubly linked list class
+#include<iostream>
+using namespace std;
+
+template<class T>
+class doubly {
+    class node {
+    public:
+        node* next;
+        node* prev;
+        T data;
+        node(T element) {
+            data = element;
+            next = prev = nullptr;
+        }
+    };
+
+public:
+    class iterator {
+        node* current;
+    public:
+        iterator(node* i) : current(i) {}
+
+        iterator& operator++ () { // Pre-increment
+            current = current->next;
+            return *this;
+        }
+
+        iterator operator++ (int) { // Post-increment
+            iterator temp = *this;
+            current = current->next;
+            return temp;
+        }
+
+        iterator& operator-- () { // Pre-decrement
+            current = current->prev;
+            return *this;
+        }
+
+        iterator operator-- (int) { // Post-decrement
+            iterator temp = *this;
+            current = current->prev;
+            return temp;
+        }
+
+        T& operator* () const {
+            return current->data;
+        }
+
+        bool operator== (const iterator& RHS) const {
+            return current == RHS.current;
+        }
+
+        bool operator!= (const iterator& RHS) const {
+            return current != RHS.current;
+        }
+    };
+
+private:
+    node* head;
+    node* tail;
+
+public:
+    doubly() : head(nullptr), tail(nullptr) {}
+
+    iterator begin() const {
+        return iterator(head);
+    }
+
+    iterator end() const {
+        return iterator(nullptr); // One past the last element
+    }
+
+    void insertathead(T val) {
+        node* newNode = new node(val);
+        if (head == nullptr) {
+            head = tail = newNode;
+        }
+        else {
+            newNode->next = head;
+            head->prev = newNode;
+            head = newNode;
+        }
+    }
+
+    void insertattail(T val) {
+        node* newNode = new node(val);
+        if (tail == nullptr) {
+            head = tail = newNode;
+        }
+        else {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+    }
+
+    void insertInOrder(T val) {
+        if (head == nullptr || val < head->data) {
+            insertathead(val);
+        }
+        else if (val > tail->data) {
+            insertattail(val);
+        }
+        else {
+            node* curr = head;
+            while (curr && curr->data < val) {
+                curr = curr->next;
+            }
+
+            node* newNode = new node(val);
+            newNode->next = curr;
+            newNode->prev = curr->prev;
+            if (curr->prev != nullptr) {
+                curr->prev->next = newNode;
+            }
+            curr->prev = newNode;
+        }
+    }
+
+    void printforward() const {
+        node* current = head;
+        while (current != nullptr) {
+            cout << current->data << " ";
+            current = current->next;
+        }
+        cout << endl;
+    }
+    int length()
+    {
+        int len = 0;
+        node* current = head;
+        while (current != nullptr) {
+            current = current->next;
+            len++;
+        }
+        return len;
+    }
+
+    void printbackward() const {
+        node* current = tail;
+        while (current != nullptr) {
+            cout << current->data << " ";
+            current = current->prev;
+        }
+        cout << endl;
+    }
+
+    bool search(T value) const {
+        int length = 0;
+        node* temp = head;
+        while (temp != nullptr) {
+            length++;
+            temp = temp->next;
+        }
+
+        node* start = (value >= tail->data) ? tail : head;
+        temp = start;
+        for (int i = 0; i < length / 2; ++i) {
+            if (temp->data == value) return true;
+            temp = (start == head) ? temp->next : temp->prev;
+        }
+        return false;
+    }
+
+    void erase(T val) {
+        node* temp = head;
+        while (temp != nullptr) {
+            if (temp->data == val) {
+                if (temp == head) {
+                    head = head->next;
+                    if (head != nullptr) head->prev = nullptr;
+                }
+                else if (temp == tail) {
+                    tail = tail->prev;
+                    if (tail != nullptr) tail->next = nullptr;
+                }
+                else {
+                    temp->prev->next = temp->next;
+                    temp->next->prev = temp->prev;
+                }
+                delete temp;
+                return;
+            }
+            temp = temp->next;
+        }
+    }
+
+    ~doubly() {
+        while (head != nullptr) {
+            node* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+//Q2
+template <typename T>
+void printList(doubly<T>& a) {
+    for (typename doubly<T>::iterator it = a.begin(); it != a.end(); ++it) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+template <typename T>
+void unionList(doubly<T>& a, doubly<T>& b, doubly<T>& c) {
+    for (typename doubly<T>::iterator it = a.begin(); it != a.end(); ++it) {
+        c.insertInOrder(*it);
+    }
+
+    for (typename doubly<T>::iterator it = b.begin(); it != b.end(); ++it) {
+        if (!a.search(*it)) {
+            c.insertInOrder(*it);
+        }
+    }
+}
+template <typename T>
+void intersectList(doubly<T>& a, doubly<T>& b, doubly<T>& c) {
+    for (typename doubly<T>::iterator it = a.begin(); it != a.end(); ++it) {
+        if (b.search(*it)) {
+            c.insertInOrder(*it);
+        }
+    }
+}
+template <typename T>
+void differenceList(doubly<T>& a, doubly<T>& b, doubly<T>& c) {
+    for (typename doubly<T>::iterator it = a.begin(); it != a.end(); ++it) {
+        if (!b.search(*it)) {
+            c.insertInOrder(*it);
+        }
+    }
+}
+template <typename T>
+void bubblesortList(doubly<T>& a) {
+    int length = a.length();
+    bool swapped;
+    for (int i = 0; i < length - 1; i++) {
+        typename doubly<T>::iterator it1 = a.begin();
+        typename doubly<T>::iterator it2 = a.begin();
+        ++it2;
+        swapped = false;
+        for (int j = 0; j < length - i - 1; j++) {
+            if (*it1 < *it2) {  
+                T temp = *it1;
+                *it1 = *it2;
+                *it2 = temp;
+                swapped = true;
+            }
+            ++it1;
+            ++it2;
+        }
+        if (!swapped) break;
+    }
+}
+
+
+int main() {
+    doubly<int> d1;
+    d1.insertInOrder(990);
+    d1.insertInOrder(70);
+    d1.insertInOrder(80);
+    d1.insertInOrder(90);
+    d1.insertInOrder(20);
+    d1.insertInOrder(40);
+    d1.insertInOrder(60);
+    d1.insertInOrder(80);
+
+    cout << "printing list by iterators and derefrence:"<<endl;
+    for (doubly<int>::iterator it = d1.begin(); it != d1.end(); ++it) {
+        cout << *it << " ";
+    }
+    cout << endl<<"calling func printforward and print backward: "<<endl;
+
+    d1.printforward();
+    d1.printbackward();
+    cout << "erasing element of val 90in the list\n";
+    d1.erase(90);
+    d1.printforward();
+   
+    cout << "Search for 990: " << (d1.search(990) ? "990 is Found in list" : "Not Found") << endl;
+    cout << "Search for 100: " << (d1.search(100) ? "Found" : "100 is Not Found") << endl;
+
+
+        doubly<int> list1;
+        list1.insertInOrder(10);
+        list1.insertInOrder(40);
+        list1.insertInOrder(30);
+        cout << "list1:\t"; list1.printforward();
+        doubly<int> list2;
+        list2.insertInOrder(15);
+        list2.insertInOrder(20);
+        list2.insertInOrder(25);
+        cout << "list2:\t"; list2.printforward();
+        doubly<int> unionListResult;
+        unionList(list1, list2, unionListResult);
+        cout << "Union of list1 and list2: ";
+        printList(unionListResult);
+
+        doubly<int> intersectListResult;
+        intersectList(list1, list2, intersectListResult);
+        cout << "Intersection of list1 and list2: ";
+        printList(intersectListResult);
+
+        doubly<int> differenceListResult;
+        differenceList(list1, list2, differenceListResult);
+        cout << "Difference of list1 and list2: ";
+        printList(differenceListResult);
+
+        cout << "Original list1: ";
+        printList(list1);
+
+        cout << "Bubble sort list1 (descending order)because the list was already inserted in order: ";
+        bubblesortList(list1);
+        printList(list1);
+
+        return 0;
+    }
+
+
+  
