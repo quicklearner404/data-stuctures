@@ -1,0 +1,171 @@
+#include <iostream>
+using namespace std;
+
+class myVector {
+private:
+    int* arrayPtr; 
+    int capacity;  
+    int currentSize;
+
+public:
+    // Default constructor
+    myVector() {
+        capacity = 2;
+        currentSize = 0;
+        arrayPtr = new int[capacity];
+        for (int i = 0; i < capacity; i++)
+            arrayPtr[i] = 0;
+    }
+
+    // Constructor with capacity parameter
+    myVector(int size) {
+        capacity = size;
+        currentSize = 0;
+        arrayPtr = new int[capacity];
+        for (int i = 0; i < capacity; i++)
+            arrayPtr[i] = 0;
+    }
+
+    // Copy constructor
+    myVector(const myVector& rhs) {
+        capacity = rhs.capacity;
+        currentSize = rhs.currentSize;
+        arrayPtr = new int[capacity];
+        for (int i = 0; i < currentSize; i++)
+            arrayPtr[i] = rhs.arrayPtr[i];
+    }
+
+    // Destructor
+    ~myVector() {
+        if(arrayPtr!=NULL)
+        delete[] arrayPtr;
+    }
+
+    // Get function for capacity
+    int getCapacity() const {
+        return capacity;
+    }
+
+    // Get function for current size
+    int getSize() const {
+        return currentSize;
+    }
+
+    // + operator to add an integer
+    myVector& operator+(int value) {
+        if (currentSize == capacity) {
+            capacity *= 2;
+            int* newArray = new int[capacity];
+            for (int i = 0; i < currentSize; i++)
+                newArray[i] = arrayPtr[i];
+            delete[] arrayPtr;
+            arrayPtr = newArray;
+        }
+        arrayPtr[currentSize] = value;
+        currentSize++;
+        return *this;
+    }
+
+    // - operator to delete the last element
+    myVector& operator-() {
+        if (currentSize > 0) {
+            currentSize--;
+        }
+        return *this;
+    }
+
+    // + operator to add two myVector objects
+    myVector operator+(const myVector& rhs) const {
+        myVector newVector(currentSize + rhs.currentSize);
+        for (int i = 0; i < currentSize; i++)
+            newVector + arrayPtr[i];
+        for (int i = 0; i < rhs.currentSize; i++)
+            newVector + rhs.arrayPtr[i];
+        return newVector;
+    }
+
+    // = operator for deep copy
+    myVector& operator=(const myVector& rhs) {
+        if (this != &rhs) {
+            delete[] arrayPtr;
+            capacity = rhs.capacity;
+            currentSize = rhs.currentSize;
+            arrayPtr = new int[capacity];
+            for (int i = 0; i < currentSize; i++)
+                arrayPtr[i] = rhs.arrayPtr[i];
+        }
+        return *this;
+    }
+
+    // [] operator for indexing
+    int operator[](int index) const {
+        if (index >= 0 && index < currentSize) {
+            cout << "the element at this index is: " ;
+            return arrayPtr[index];
+        }
+        else
+        {
+            cout << "array index not found.";
+            return 0;
+        }
+    }
+
+    // >> operator for input
+    friend istream& operator>>(istream& input, myVector& vec) {
+        int value;
+        cout << "Enter elements of the vector and end with -1 delimiter: ";
+        while (input >> value && value != -1) {
+            vec + value;  
+        }
+        return input;
+    }
+
+    // << operator for output
+    friend ostream& operator<<(ostream& output, const myVector& vec) {
+        output << "[";
+        for (int i = 0; i < vec.currentSize; i++) {
+            output << vec.arrayPtr[i];
+            if (i < vec.currentSize - 1) output << ", ";
+        }
+        output << "]";
+        return output;
+    }
+};
+
+
+int main() {
+    myVector vec1;  
+    vec1 + 2;      
+    vec1 + 10;  
+    vec1 + 33;
+    vec1 + 9;
+    cout << "vec1: " << vec1 << endl;  
+
+    myVector vec2(5);  
+    vec2 + 1;
+    vec2 + 4;
+    vec2 + 12;
+    cout << "vec2: " << vec2 << endl;  
+
+    myVector vec3 = vec1 + vec2; 
+    cout << "vec3 (vec1 + vec2): " << vec3 << endl;  
+
+    -vec3;  // Remove last three elements
+    -vec3;
+    -vec3;
+    cout << "vec3 after removing last three elements: " << vec3 << endl; 
+
+    cout<<vec3[1];  
+
+    myVector vec4(vec3); 
+    cout << "vec4 (by copy constructor with parameter of vec3): " << vec4 << endl;  
+
+    myVector vec5;
+    vec5 = vec2;  
+    cout << "vec5 (by assignment operator equal to vec2): " << vec5 << endl;  
+
+    cin >> vec1; 
+    cout << "vec1 after input: " << vec1 << endl;  
+
+    return 0;
+}
