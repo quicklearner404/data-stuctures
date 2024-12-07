@@ -1,0 +1,413 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <queue> 
+using namespace std;
+
+struct Student {
+    int rollNumber;
+    string firstName;
+    string lastName;
+    int batch;
+    string department;
+    float cgpa;
+};
+
+template<typename K, typename V>
+class SpecialBST {
+    struct Node {
+        K key;
+        V value;
+        Node* left;
+        Node* right;
+
+        Node(K k, V v) : key(k), value(v), left(nullptr), right(nullptr) {}
+    };
+
+    Node* root;
+
+public:
+    SpecialBST() : root(nullptr) {}
+
+    // Rotate right
+    Node* rightRotate(Node* node) {
+        Node* newRoot = node->left;  //save left child of node which becomes new root
+        node->left = newRoot->right;
+        newRoot->right = node;
+        return newRoot;
+    }
+
+    // Rotate left
+    Node* leftRotate(Node* node) {
+        Node* newRoot = node->right;
+        node->right = newRoot->left;
+        newRoot->left = node;
+        return newRoot;
+    }
+
+    // Splay the node with the given key to the root
+    Node* rotate(Node* node, K key) {
+        if (node == nullptr || node->key == key) return node;
+
+        if (key < node->key) {
+            if (node->left == nullptr) return node;  // No left child, no need to splay further
+
+            // Zig-Zig (left-left)
+            if (key < node->left->key) {
+                node->left->left = rotate(node->left->left, key);
+                node = rightRotate(node);
+            }
+            // Zig-Zag (left-right)
+            else if (key > node->left->key) {
+                node->left->right = rotate(node->left->right, key);
+                if (node->left->right != nullptr) {
+                    node->left = leftRotate(node->left);
+                }
+            }
+
+            return (node->left == nullptr) ? node : rightRotate(node);
+        }
+        else {
+            if (node->right == nullptr) return node;  // No right child, no need to splay further
+
+            // Zag-Zig (right-left)
+            if (key < node->right->key) {
+                node->right->left = rotate(node->right->left, key);
+                if (node->right->left != nullptr) {
+                    node->right = rightRotate(node->right);
+                }
+            }
+            // Zag-Zag (right-right)
+            else if (key > node->right->key) {
+                node->right->right = rotate(node->right->right, key);
+                node = leftRotate(node);
+            }
+
+            return (node->right == nullptr) ? node : leftRotate(node);
+        }
+    }
+
+    bool insert(K key, V value) {
+        root = insertRec(root, key, value);
+        root = rotate(root, key);  
+        cout << "node inserted successfully!";
+        return true;
+    }
+
+    Node* insertRec(Node* node, K key, V value) {
+        if (node == nullptr) {
+            return new Node(key, value);
+        }
+
+        if (key < node->key) {
+            node->left = insertRec(node->left, key, value);
+        }
+        else if (key > node->key) {
+            node->right = insertRec(node->right, key, value);
+        }
+
+        return node;
+    }
+
+    bool deleteKey(K key) {
+        return deleteRec(root, key);
+    }
+
+    //Node*
+       bool deleteRec(Node* node, K key) {
+        if (node == nullptr) {
+            cout << "Node not found for deletion." << endl;
+            //return nullptr;
+            return false;
+        }
+
+        // Traverse left if key is smaller
+        if (key < node->key) {
+            //node->left = 
+             return   deleteRec(node->left, key);
+        }
+        // Traverse right if key is larger
+        else if (key > node->key) {
+            //node->right = 
+                return deleteRec(node->right, key);
+        }
+        else { // Node with the key found
+            // Case 1: Node has only right child or no child
+            if (node->left == nullptr) {
+                Node* temp = node->right;
+                delete node;
+                node = temp;
+                cout << "Node deleted successfully (no left child)." << endl;
+                //return temp;
+                return true;
+            }
+            // Case 2: Node has only left child
+            else if (node->right == nullptr) {
+                Node* temp = node->left;
+                delete node;
+                node = temp;
+                cout << "Node deleted successfully (no right child)." << endl;
+               // return temp;
+                return true;
+            }
+
+            // Case 3: Node has two children, find the in-order successor
+            Node* temp = minValueNode(node->right);
+            node->key = temp->key;
+            node->value = temp->value;
+
+            // Delete the in-order successor from the right subtree
+            //node->right = 
+                return deleteRec(node->right, temp->key);
+        }
+
+       // return node;
+       // return true;
+    }
+
+
+    Node* minValueNode(Node* node) {
+        Node* current = node;
+        while (current && current->left != nullptr)
+            current = current->left;
+        return current;
+    }
+
+    V search(K key) {
+        root = rotate(root, key);  // Splay before returning the node
+        if (root && root->key == key) {
+            return root->value;
+        }
+        return V();  // Return default value if not found
+    }
+
+    void getValuesInOrder(vector<V>& values) {
+        inOrderRec(root, values);
+    }
+
+    void inOrderRec(Node* node, vector<V>& values) {
+        if (node != nullptr) {
+            inOrderRec(node->left, values);
+            values.push_back(node->value);
+            inOrderRec(node->right, values);
+        }
+    }
+    vector<int> levelOrder(Node* root) {
+        std::vector<int> result;
+        if (!root) return result; // Return empty vector if the tree is empty.
+
+        std::queue<Node*> q;
+        q.push(root);
+
+        while (!q.empty()) {
+            Node* current = q.front();
+            q.pop();
+            result.push_back(current->key); // Add the current node's key to the result vector.
+
+            // Push left and right children if they exist.
+            if (current->left) q.push(current->left);
+            if (current->right) q.push(current->right);
+        }
+
+        return result;
+    }
+
+
+};
+
+class StudentList {
+private:
+    SpecialBST<int, Student> bst;
+
+public:
+    bool InsertNewStudent(int rollNumber, string firstName, string lastName, int batch, string department, float cgpa) {
+        // Input validation
+        if (batch <= 0) {
+            cout << "Error: Batch must be a positive number!" << endl;
+            return false;
+        }
+        if (cgpa < 1 || cgpa > 4) {
+            cout << "Error: CGPA must be between 1 and 4!" << endl;
+            return false;
+        }
+
+        // Check for duplicate roll number
+        Student existingStudent = bst.search(rollNumber);
+        if (existingStudent.rollNumber != 0) {
+            cout << "Roll Number already exists!" << endl;
+            return false; // Duplicate roll number
+        }
+
+        Student newStudent = { rollNumber, firstName, lastName, batch, department, cgpa };
+        return bst.insert(rollNumber, newStudent);
+    }
+
+    bool deleteStudent(int rollNumber) {
+       return  bst.deleteKey(rollNumber);
+    }
+
+    bool updateStudent(int oldRollNumber, int newRollNumber, string newFirstName, string newLastName, int newBatch, string newDepartment, float newCgpa) {
+        Student student = bst.search(oldRollNumber);
+        if (student.rollNumber == 0) return false; // Student not found
+
+        // Input validation
+        if (newBatch <= 0) {
+            cout << "Error: Batch must be a positive number!" << endl;
+            return false;
+        }
+        if (newCgpa < 1 || newCgpa > 4) {
+            cout << "Error: CGPA must be between 1 and 4!" << endl;
+            return false;
+        }
+
+        // Deleting old student and inserting new student with updated information
+        deleteStudent(oldRollNumber);
+        return InsertNewStudent(newRollNumber, newFirstName, newLastName, newBatch, newDepartment, newCgpa);
+    }
+
+    void printAllStudents() {
+        vector<Student> students;
+        bst.getValuesInOrder(students);
+        cout << "\nTotal Students: " << students.size();
+        for (const auto& student : students) {
+            cout << "\nRoll No: " << student.rollNumber << ", Name: " << student.firstName << " " << student.lastName
+                << ", Batch: " << student.batch << ", Department: " << student.department << ", CGPA: " << student.cgpa << endl;
+        }
+    }
+
+    Student searchStudent(int rollNumber) {
+        Student student = bst.search(rollNumber);
+        return student;
+    }
+    Student inputStudentData() {
+        Student student;
+
+        cout << "Please enter the data of the student in the order: Roll Number, First Name, Last Name, Batch, Department, CGPA" << endl;
+
+        // Roll Number validation
+        cout << "Roll Number: ";
+        while (!(cin >> student.rollNumber)) {
+            cout << "Invalid roll number. Please enter an integer value: ";
+            cin.clear(); // Clear the error flag on cin
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+        }
+
+        // First Name
+        cout << "First Name: ";
+        cin >> student.firstName;
+
+        // Last Name
+        cout << "Last Name: ";
+        cin >> student.lastName;
+
+        // Batch
+        cout << "Batch: ";
+        cin >> student.batch;
+
+        // Department
+        cout << "Department: ";
+        cin >> student.department;
+
+        // CGPA validation
+        cout << "CGPA: ";
+        while (!(cin >> student.cgpa) || student.cgpa < 0.0 || student.cgpa > 4.0) {
+            cout << "Invalid CGPA. Please enter a value between 0.0 and 4.0: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+
+        return student;
+    }
+
+
+};
+
+int main() {
+    StudentList studentList;
+    char choice;
+    int rollNumber, batch, newRollNumber;
+    string firstName, lastName, department;
+    float cgpa;
+
+    while (true) {
+        cout << "Press I to insert a new student." << endl;
+        cout << "Press D to delete a student." << endl;
+        cout << "Press S to search a student by roll number." << endl;
+        cout << "Press U to update the data of a student." << endl;
+        cout << "Press P to print all students sorted by roll number." << endl;
+        cout << "Press E to exit." << endl;
+        cin >> choice;
+
+        switch (choice) {
+        case 'I': {
+            //// Inserting a new student
+            Student newStudent = studentList.inputStudentData();
+           if( studentList.InsertNewStudent(newStudent.rollNumber, newStudent.firstName, newStudent.lastName, newStudent.batch, newStudent.department, newStudent.cgpa))
+           {
+               cout << "Student record inserted successfully " << endl;
+           }
+           else{
+               cout << "Student could not be inserted!" << endl;
+           }
+            break;
+        }
+        case 'D': {
+            // Deleting a student
+            cout << "Enter the Roll Number of the student to delete: ";
+            cin >> rollNumber;
+           if( studentList.deleteStudent(rollNumber))
+           {
+               cout << "Student record deleted successfully " <<endl;
+           }
+           else {
+               cout << "Student not found!" << endl;
+           }
+           
+            break;
+        }
+        case 'S': {
+            // Searching a student
+            cout << "Enter Roll Number to search: ";
+            cin >> rollNumber;
+            Student student = studentList.searchStudent(rollNumber);
+            if (student.rollNumber != 0) {
+                cout << "Student found! Name: " << student.firstName << " " << student.lastName << endl;
+            }
+            else {
+                cout << "Student not found!" << endl;
+            }
+            break;
+        }
+        case 'U': {
+            // Updating student data
+            cout << "Enter Roll Number of student to update: ";
+            cin >> rollNumber;
+
+            cout << "Enter new data (Roll Number, First Name, Last Name, Batch, Department, CGPA): " << endl;
+            cin >> newRollNumber >> firstName >> lastName >> batch >> department >> cgpa;
+
+            if (studentList.updateStudent(rollNumber, newRollNumber, firstName, lastName, batch, department, cgpa)) {
+                cout << "Student updated successfully!" << endl;
+            }
+            else {
+                cout << "Student not found!" << endl;
+            }
+            break;
+        }
+        case 'P': {
+            // Print all students
+            studentList.printAllStudents();
+            break;
+        }
+        case 'E': {
+            // Exit
+            return 0;
+        }
+        default:
+            cout << "Invalid choice!" << endl;
+            break;
+        }
+    }
+
+    return 0;
+}
