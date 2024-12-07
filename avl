@@ -1,0 +1,196 @@
+#include <iostream>
+using namespace std;
+
+template <typename T>
+struct Node {
+    T value;
+    Node* left;
+    Node* right;
+    int height;
+
+    Node(T val) : value(val), left(nullptr), right(nullptr), height(1) {}
+};
+
+template <typename T>
+class AVLTree {
+public:
+    AVLTree() : root(nullptr) {}
+
+    void insert(T val) {
+        root = insert(root, val);
+    }
+
+    bool search(T val) {
+        return search(root, val);
+    }
+
+    bool isAVL() {
+        return isAVL(root);
+    }
+
+    T findMin() {
+        Node<T>* minNode = findMin(root);
+        return minNode ? minNode->value : T(); // Return default if empty
+    }
+
+    T findSecondMin() {
+        Node<T>* secondMinNode = findSecondMin(root);
+        return secondMinNode ? secondMinNode->value : T(); // Return default if empty
+    }
+
+    void printInOrder() {
+        inOrder(root);
+        cout << endl;
+    }
+
+    void printPreOrder() {
+        preOrder(root);
+        cout << endl;
+    }
+
+    void printPostOrder() {
+        postOrder(root);
+        cout << endl;
+    }
+
+private:
+    Node<T>* root;
+
+    int height(Node<T>* node) {
+        return node ? node->height : 0;
+    }
+
+    int balanceFactor(Node<T>* node) {
+        return node ? height(node->left) - height(node->right) : 0;
+    }
+
+    Node<T>* rotateRight(Node<T>* y) {
+        Node<T>* x = y->left;
+        Node<T>* T2 = x->right;
+        x->right = y;
+        y->left = T2;
+        y->height = max(height(y->left), height(y->right)) + 1;
+        x->height = max(height(x->left), height(x->right)) + 1;
+        return x;
+    }
+
+    Node<T>* rotateLeft(Node<T>* x) {
+        Node<T>* y = x->right;
+        Node<T>* T2 = y->left;
+        y->left = x;
+        x->right = T2;
+        x->height = max(height(x->left), height(x->right)) + 1;
+        y->height = max(height(y->left), height(y->right)) + 1;
+        return y;
+    }
+
+    Node<T>* insert(Node<T>* node, T val) {
+        if (!node)
+            return new Node<T>(val);
+
+        if (val < node->value)
+            node->left = insert(node->left, val);
+        else if (val > node->value)
+            node->right = insert(node->right, val);
+        else
+            return node; // Duplicate keys not allowed
+
+        node->height = max(height(node->left), height(node->right)) + 1;
+
+        int balance = balanceFactor(node);
+
+        if (balance > 1 && val < node->left->value)
+            return rotateRight(node);
+
+        if (balance < -1 && val > node->right->value)
+            return rotateLeft(node);
+
+        if (balance > 1 && val > node->left->value) {
+            node->left = rotateLeft(node->left);
+            return rotateRight(node);
+        }
+
+        if (balance < -1 && val < node->right->value) {
+            node->right = rotateRight(node->right);
+            return rotateLeft(node);
+        }
+
+        return node;
+    }
+
+    bool isAVL(Node<T>* node) {
+        if (!node) return true;
+        int balance = balanceFactor(node);
+        if (balance > 1 || balance < -1) return false;
+        return isAVL(node->left) && isAVL(node->right);
+    }
+
+    bool search(Node<T>* node, T val) {
+        if (!node) return false;
+        if (val == node->value) return true;
+        return val < node->value ? search(node->left, val) : search(node->right, val);
+    }
+
+    Node<T>* findMin(Node<T>* node) {
+        return node && node->left ? findMin(node->left) : node;
+    }
+
+    Node<T>* findSecondMin(Node<T>* node) {
+        if (!node || (!node->left && !node->right))
+            return nullptr;
+
+        if (node->left && !node->left->left && !node->left->right)
+            return node;
+
+        return findSecondMin(node->left ? node->left : node->right);
+    }
+
+    void inOrder(Node<T>* node) {
+        if (!node) return;
+        inOrder(node->left);
+        cout << node->value << " ";
+        inOrder(node->right);
+    }
+
+    void preOrder(Node<T>* node) {
+        if (!node) return;
+        cout << node->value << " ";
+        preOrder(node->left);
+        preOrder(node->right);
+    }
+
+    void postOrder(Node<T>* node) {
+        if (!node) return;
+        postOrder(node->left);
+        postOrder(node->right);
+        cout << node->value << " ";
+    }
+};
+
+int main() {
+    AVLTree<int> tree;
+    tree.insert(20);
+    tree.insert(10);
+    tree.insert(30);
+    tree.insert(5);
+    tree.insert(15);
+    tree.insert(25);
+    tree.insert(35);
+
+    cout << "InOrder Traversal: ";
+    tree.printInOrder();
+
+    cout << "PreOrder Traversal: ";
+    tree.printPreOrder();
+
+    cout << "PostOrder Traversal: ";
+    tree.printPostOrder();
+
+    cout << "Minimum: " << tree.findMin() << endl;
+    cout << "Second Minimum: " << tree.findSecondMin() << endl;
+
+    cout << "Search 25: " << (tree.search(25) ? "Found" : "Not Found") << endl;
+    cout << "Is AVL: " << (tree.isAVL() ? "Yes" : "No") << endl;
+
+    return 0;
+}
