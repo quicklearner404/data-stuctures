@@ -1,0 +1,162 @@
+#include <iostream>
+#include <unordered_map>
+#include <queue>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Structure for Huffman tree node
+struct HuffmanNode {
+    char ch;
+    int freq;
+    HuffmanNode* left;
+    HuffmanNode* right;
+
+    // Constructor
+    HuffmanNode(char c, int f) : ch(c), freq(f), left(NULL), right(NULL) {}
+};
+
+// Comparator for priority queue: Min-Heap (lower frequency comes first)
+struct Compare {
+    bool operator()(HuffmanNode* a, HuffmanNode* b) {
+        return a->freq > b->freq;  // Smaller frequency = higher priority
+    }
+};
+
+// Function to calculate frequencies of characters in a string
+unordered_map<char, int> calculate_frequency(const string& input) {
+    unordered_map<char, int> freq;
+    for (char ch : input) {
+        freq[ch]++;
+    }
+    return freq;
+}
+
+// Function to build the Huffman tree
+HuffmanNode* build_huffman_tree(const unordered_map<char, int>& freq) {
+    priority_queue<HuffmanNode*, vector<HuffmanNode*>, Compare> pq;
+
+    // Create a leaf node for each character and push it to the priority queue
+    for (auto& pair : freq) {
+        pq.push(new HuffmanNode(pair.first, pair.second));
+    }
+
+    // Build the Huffman tree
+    while (pq.size() > 1) {
+        // Pop two nodes with the lowest frequency
+        HuffmanNode* left = pq.top();
+        pq.pop();
+        HuffmanNode* right = pq.top();
+        pq.pop();
+
+        // Create a new internal node with combined frequency
+        HuffmanNode* merged = new HuffmanNode('\0', left->freq + right->freq);
+        merged->left = left;
+        merged->right = right;
+
+        // Push the merged node back into the priority queue
+        pq.push(merged);
+    }
+
+    // The final node is the root of the Huffman tree
+    return pq.top();
+}
+
+// Function to generate Huffman codes
+void generate_codes(HuffmanNode* root, const string& code, unordered_map<char, string>& codes) {
+    // Base case: if the node is NULL, return
+    if (!root) return;
+
+    // If it's a leaf node, store the code for the character
+    if (!root->left && !root->right) {
+        codes[root->ch] = code;
+    }
+
+    // Recursively generate codes for left and right subtrees
+    generate_codes(root->left, code + "0", codes);  // '0' for left child
+    generate_codes(root->right, code + "1", codes); // '1' for right child
+}
+
+// Function to encode the string
+string encode(const string& str, const unordered_map<char, string>& codes) {
+    string encoded_str = "";
+    for (char ch : str) {
+        encoded_str += codes.at(ch);
+    }
+    return encoded_str;
+}
+
+// Function to decode the encoded string
+string decode(HuffmanNode* root, const string& encoded_str) {
+    string decoded_str = "";
+    HuffmanNode* current = root;
+
+    // Traverse the encoded string bit by bit
+    for (char bit : encoded_str) {
+        // Move left for '0', right for '1'
+        if (bit == '0') {
+            current = current->left;
+        }
+        else {
+            current = current->right;
+        }
+
+        // If we reach a leaf node, add the character to the decoded string
+        if (!current->left && !current->right) {
+            decoded_str += current->ch;
+            current = root; // Reset to the root for the next character
+        }
+    }
+    return decoded_str;
+}
+
+// Function to print results
+void print_results(const string& original, const string& encoded, const unordered_map<char, string>& codes) {
+    cout << "Original String: " << original << endl;
+    cout << "Original Size (in bytes): " << original.size() << " bytes" << endl;
+
+    // Print Huffman codes for characters
+    cout << "\nHuffman Codes:\n";
+    for (auto& pair : codes) {
+        cout << pair.first << ": " << pair.second << endl;
+    }
+
+    cout << "\nEncoded String: " << encoded << endl;
+    cout << "Encoded Size (in bits): " << encoded.size() << " bits (" << encoded.size() / 8 << " bytes)" << endl;
+
+    double compression_ratio = (double)encoded.size() / (original.size() * 8) * 100;
+    cout << "Compression Ratio: " << compression_ratio << "%" << endl;
+}
+
+int main() {
+    string input = "mississippi";
+
+    // Step 1: Calculate frequencies of characters
+    unordered_map<char, int> freq = calculate_frequency(input);
+
+    // Print the frequency table for debugging
+    cout << "Character Frequencies:\n";
+    for (auto& pair : freq) {
+        cout << pair.first << ": " << pair.second << endl;
+    }
+
+    // Step 2: Build the Huffman tree
+    HuffmanNode* root = build_huffman_tree(freq);
+
+    // Step 3: Generate Huffman codes
+    unordered_map<char, string> huffman_codes;
+    generate_codes(root, "", huffman_codes);
+
+    // Step 4: Encode the string
+    string encoded_str = encode(input, huffman_codes);
+
+    // Step 5: Decode the string
+    string decoded_str = decode(root, encoded_str);
+
+    // Step 6: Print results
+    print_results(input, encoded_str, huffman_codes);
+
+    cout << "\nDecoded String: " << decoded_str << endl;
+
+    return 0;
+}
