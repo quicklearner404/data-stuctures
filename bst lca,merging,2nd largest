@@ -1,0 +1,151 @@
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+class BST {
+private:
+    Node* root;
+
+    // Helper function to insert nodes in the BST
+    Node* insert(Node* node, int value) {
+        if (node == nullptr) return new Node(value);
+        if (value < node->data)
+            node->left = insert(node->left, value);
+        else
+            node->right = insert(node->right, value);
+        return node;
+    }
+
+    // Helper function for finding LCA of two nodes in the BST
+    Node* findLCAHelper(Node* root, int n1, int n2) {
+        if (root == nullptr) return nullptr;
+
+        // If both nodes are smaller than root, LCA lies in left
+        if (root->data > n1 && root->data > n2)
+            return findLCAHelper(root->left, n1, n2);
+
+        // If both nodes are greater than root, LCA lies in right
+        if (root->data < n1 && root->data < n2)
+            return findLCAHelper(root->right, n1, n2);
+
+        return root; // This is the LCA
+    }
+
+    // Helper function to find the second largest node
+    Node* findSecondLargestHelper(Node* root) {
+        if (root == nullptr || (root->left == nullptr && root->right == nullptr))
+            return nullptr;
+
+        // Case 1: If root has a right child, go to the rightmost node
+        if (root->right != nullptr) {
+            // If right child has no children, current node is second largest
+            if (root->right->left == nullptr && root->right->right == nullptr)
+                return root;
+
+            return findSecondLargestHelper(root->right);
+        }
+
+        // Case 2: If root has no right child, second largest is the parent of the largest
+        return findSecondLargestHelper(root->left);
+    }
+
+    // Helper function to do an inorder traversal and insert values into another BST
+    void inorderTraversal(Node* root, BST& other) {
+        if (root == nullptr) return;
+        inorderTraversal(root->left, other);
+        other.insert(root->data);
+        inorderTraversal(root->right, other);
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    // Public insert function
+    void insert(int value) {
+        root = insert(root, value);
+    }
+
+    // Public function to find LCA
+    Node* findLCA(int n1, int n2) {
+        return findLCAHelper(root, n1, n2);
+    }
+
+    // Public function to find the second largest node
+    Node* findSecondLargest() {
+        return findSecondLargestHelper(root);
+    }
+
+    // Public function to merge two BSTs
+    void mergeBSTs(BST& other) {
+        inorderTraversal(other.root, *this);
+    }
+
+    // Function to print the inorder traversal of the BST
+    void inorder() {
+        inorderHelper(root);
+        cout << endl;
+    }
+
+    // Helper function to do inorder traversal of the tree
+    void inorderHelper(Node* node) {
+        if (node == nullptr) return;
+        inorderHelper(node->left);
+        cout << node->data << " ";
+        inorderHelper(node->right);
+    }
+};
+
+int main() {
+    BST bst1;
+    BST bst2;
+
+    // Inserting elements into the first BST
+    bst1.insert(20);
+    bst1.insert(8);
+    bst1.insert(22);
+    bst1.insert(4);
+    bst1.insert(12);
+    bst1.insert(10);
+    bst1.insert(14);
+
+    cout << "Inorder Traversal of BST 1: ";
+    bst1.inorder();
+
+    // Inserting elements into the second BST
+    bst2.insert(25);
+    bst2.insert(30);
+    bst2.insert(17);
+    bst2.insert(5);
+
+    cout << "Inorder Traversal of BST 2: ";
+    bst2.inorder();
+
+    // Find the Lowest Common Ancestor (LCA)  q2
+    Node* lca = bst1.findLCA(10, 14);
+    if (lca != nullptr)
+        cout << "LCA of 10 and 14: " << lca->data << endl;
+    else
+        cout << "LCA not found!" << endl;
+
+    // Find the second largest node     q3
+    Node* secondLargest = bst1.findSecondLargest();
+    if (secondLargest != nullptr)
+        cout << "Second largest node in BST1: " << secondLargest->data << endl;
+    else
+        cout << "Second largest node not found!" << endl;
+
+    // Merging bst2 into bst1    q4
+    bst1.mergeBSTs(bst2);
+
+    cout << "Inorder Traversal after merging BST1 and BST2: ";
+    bst1.inorder();
+
+    return 0;
+}
